@@ -1,7 +1,6 @@
-// components/StatsCard.jsx
-import React from 'react';
+import React from 'react'
 
-const StatsCard = ({ icon, title, value, color }) => {
+const topDetails = ({ icon, title, value, color }) => {
   return (
     <div className="bg-[#12152B] rounded-2xl p-6 text-white w-full sm:w-1/3">
       <div className={`p-3 inline-block rounded-xl mb-4 ${color}`}>
@@ -13,4 +12,6 @@ const StatsCard = ({ icon, title, value, color }) => {
   );
 };
 
-export default StatsCard;
+
+
+export default topDetails
