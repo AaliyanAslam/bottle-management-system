@@ -1,10 +1,10 @@
 // pages/Home.jsx
 import React, { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from './lib/firebase';
-import Dashboard from './components/dashboard';
-import DeliveryForm from './components/deliveryForm';
-import DeliveryHistory from './components/deliveryHistory';
+import { db } from '../lib/firebase';
+import Dashboard from '../components/dashboard';
+import DeliveryForm from '../components/deliveryForm';
+import DeliveryHistory from '../components/deliveryHistory';
 
 const Home = () => {
   const [deliveries, setDeliveries] = useState([]);
