@@ -39,7 +39,7 @@ console.log(err.message);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm">
+      <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md  min-w-10 max-w-xs">
         <h2 className="text-lg lg:text-2xl  font-bold mb-6 text-center">Login Here</h2>
 
         <input
