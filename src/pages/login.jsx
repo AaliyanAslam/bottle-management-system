@@ -1,9 +1,8 @@
 import React, { useState } from 'react';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { signInWithEmailAndPassword  } from 'firebase/auth';
 import {auth} from "../lib/firebase"
 import { Link, useNavigate } from 'react-router-dom';
-
-const Signup = () => {
+const Login = () => {
     const [messege , setMessege] = useState("")
     const [error , setError] = useState("")
 const navigate = useNavigate()
@@ -21,9 +20,9 @@ const navigate = useNavigate()
     // Firebase logic yahan add karni hai
     console.log('Signup form:', form);
    try{
-     await createUserWithEmailAndPassword(auth , form.email , form.password)
-     setMessege("Account created successfully")
-     console.log("done");
+     await signInWithEmailAndPassword (auth , form.email , form.password)
+     setMessege("Login successfull successfully")
+     console.log("loin successfull");
      setInterval(() => {
         setMessege("")
      }, 2000);
@@ -41,7 +40,7 @@ console.log(err.message);
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-100">
       <form onSubmit={handleSubmit} className="bg-white p-8 rounded shadow-md w-full max-w-sm">
-        <h2 className="text-2xl font-bold mb-6 text-center">Sign Up</h2>
+        <h2 className="text-lg lg:text-2xl  font-bold mb-6 text-center">Login Here</h2>
 
         <input
           type="email"
@@ -69,12 +68,13 @@ console.log(err.message);
           type="submit"
           className="w-full bg-blue-500 text-white p-2 rounded hover:bg-blue-600 transition"
         >
-          Sign Up
+         Login
         </button>
             <div className="text-sm text-center text-gray-400 mt-4">
-  Already have an account?{' '}
-  <Link to="/" className="text-blue-500 hover:underline">
-    Login
+  Dont't have an account?{' '}
+  <Link to="/signup" onClick={()=> console.log("clicked to signup")
+  } className="text-blue-500 hover:underline">
+    Signup
   </Link>
 </div>
       </form>
@@ -84,4 +84,4 @@ console.log(err.message);
   );
 };
 
-export default Signup;
+export default Login;
