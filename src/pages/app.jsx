@@ -1,6 +1,6 @@
 // pages/Home.jsx
 import React, { useEffect, useState } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, where } from 'firebase/firestore';
 import { db } from '../lib/firebase';
 import Dashboard from '../components/dashboard';
 import DeliveryForm from '../components/deliveryForm';
@@ -14,6 +14,29 @@ const Home = () => {
   const [deliveries, setDeliveries] = useState([]);
   const navigate = useNavigate()
   const [user , setUser]= useState()
+  useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+    if (currentUser) {
+      const q = query(
+        collection(db, 'deliveries'),
+        where('userId', '==', currentUser.uid) // ✅ only that user's data
+      );
+
+      onSnapshot(q, (snapshot) => {
+        const items = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setDeliveries(items);
+      });
+    } else {
+      navigate('/'); // If not logged in
+    }
+  });
+
+  return () => unsubscribe();
+}, []);
+
 
   useEffect(() => {
     const q = query(collection(db, 'deliveries'), orderBy('createdAt', 'asc'));

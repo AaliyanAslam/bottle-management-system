@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { auth } from '../lib/firebase';
 import {
   Package,
   Calendar,
@@ -13,6 +15,17 @@ import {
 } from 'lucide-react';
 
 const DeliveryForm = () => {
+const [user ,setUser] = useState("")
+  onAuthStateChanged(auth , (user) => {
+    if(user) {
+console.log("form ka userlog =>");
+setUser(user)
+    }
+    else {
+      console.log("no user found");
+      
+    }
+  })
   const getToday = () => {
     const today = new Date();
     return today.toISOString().split('T')[0]; // e.g., "2025-06-18"
@@ -23,7 +36,9 @@ const DeliveryForm = () => {
     quantity: '',
     price: '80',
     deliveredBy: '',
-    notes: ''
+    notes: '',
+   
+
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -47,7 +62,9 @@ const DeliveryForm = () => {
         total: Number(total),
         quantity: Number(form.quantity),
         price: Number(form.price),
-        createdAt: new Date()
+        createdAt: new Date(),
+        userId: user.uid
+
       });
 
       setSubmitStatus('success');
