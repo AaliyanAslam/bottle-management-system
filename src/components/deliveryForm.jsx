@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
 import { onAuthStateChanged } from 'firebase/auth';
-import { auth } from '../lib/firebase';
 import {
   Package,
   Calendar,
@@ -15,20 +14,26 @@ import {
 } from 'lucide-react';
 
 const DeliveryForm = () => {
-const [user ,setUser] = useState("")
-  onAuthStateChanged(auth , (user) => {
-    if(user) {
-console.log("form ka userlog =>");
-setUser(user)
-    }
-    else {
-      console.log("no user found");
-      
-    }
-  })
+  const [user, setUser] = useState(null);
+
+  // ✅ Fix: User ko track karna using useEffect
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        console.log("form ka userlog =>", currentUser);
+        setUser(currentUser);
+      } else {
+        console.log("no user found");
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe(); // cleanup on unmount
+  }, []);
+
   const getToday = () => {
     const today = new Date();
-    return today.toISOString().split('T')[0]; // e.g., "2025-06-18"
+    return today.toISOString().split('T')[0];
   };
 
   const [form, setForm] = useState({
@@ -37,8 +42,6 @@ setUser(user)
     price: '80',
     deliveredBy: '',
     notes: '',
-   
-
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -51,31 +54,35 @@ setUser(user)
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (!user) {
+      alert("Please log in before adding a delivery.");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitStatus(null);
 
-    const total = form.quantity * form.price;
+    const total = Number(form.quantity) * Number(form.price);
 
     try {
       await addDoc(collection(db, 'deliveries'), {
         ...form,
-        total: Number(total),
+        total,
         quantity: Number(form.quantity),
         price: Number(form.price),
         createdAt: new Date(),
-        userId: user.uid
-
+        userId: user.uid, // ✅ Correct user ID
       });
 
       setSubmitStatus('success');
 
-      // 👇 Form reset, but keep today's date
+      // Reset form (keeping today's date)
       setForm({
         date: getToday(),
         quantity: '',
         price: '80',
         deliveredBy: '',
-        notes: ''
+        notes: '',
       });
 
       setTimeout(() => setSubmitStatus(null), 3000);
@@ -92,7 +99,7 @@ setUser(user)
     : '0.00';
 
   return (
-    <div className="max-w-xl mx-auto p-6 bg-[#12152B] rounded-2xl shadow-lg ">
+    <div className="max-w-xl mx-auto p-6 bg-[#12152B] rounded-2xl shadow-lg">
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2">
           <div className="p-2 bg-blue-200 rounded-lg">
@@ -104,11 +111,10 @@ setUser(user)
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Date Input */}
+        {/* Date */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-white">
-            <Calendar className="w-4 h-4" />
-            Delivery Date
+            <Calendar className="w-4 h-4" /> Delivery Date
           </label>
           <input
             name="date"
@@ -120,12 +126,11 @@ setUser(user)
           />
         </div>
 
-        {/* Quantity and Price */}
+        {/* Quantity & Price */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-white">
-              <Hash className="w-4 h-4" />
-              Quantity (Bottles)
+              <Hash className="w-4 h-4" /> Quantity (Bottles)
             </label>
             <input
               name="quantity"
@@ -141,8 +146,7 @@ setUser(user)
 
           <div className="space-y-2">
             <label className="flex items-center gap-2 text-sm font-medium text-white">
-              <DollarSign className="w-4 h-4" />
-              Price per Bottle
+              <DollarSign className="w-4 h-4" /> Price per Bottle
             </label>
             <input
               name="price"
@@ -158,7 +162,7 @@ setUser(user)
           </div>
         </div>
 
-        {/* Total Display */}
+        {/* Total */}
         {(form.quantity || form.price) && (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <div className="flex items-center justify-between">
@@ -171,8 +175,7 @@ setUser(user)
         {/* Delivered By */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-white">
-            <User className="w-4 h-4" />
-            Delivered By
+            <User className="w-4 h-4" /> Delivered By
           </label>
           <input
             name="deliveredBy"
@@ -187,8 +190,7 @@ setUser(user)
         {/* Notes */}
         <div className="space-y-2">
           <label className="flex items-center gap-2 text-sm font-medium text-white">
-            <FileText className="w-4 h-4" />
-            Notes (Optional)
+            <FileText className="w-4 h-4" /> Notes (Optional)
           </label>
           <textarea
             name="notes"
@@ -200,14 +202,13 @@ setUser(user)
           />
         </div>
 
-        {/* Submit Status */}
+        {/* Status */}
         {submitStatus === 'success' && (
           <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg text-green-800">
             <Check className="w-5 h-5" />
             <span className="font-medium">Delivery added successfully!</span>
           </div>
         )}
-
         {submitStatus === 'error' && (
           <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg text-red-800">
             <AlertCircle className="w-5 h-5" />
@@ -215,7 +216,7 @@ setUser(user)
           </div>
         )}
 
-        {/* Submit Button */}
+        {/* Button */}
         <button
           type="submit"
           disabled={isSubmitting}

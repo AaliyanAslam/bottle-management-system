@@ -44,6 +44,13 @@ const Dashboard = ({ deliveries }) => {
         value={`${monthlyCost} PKR`}
         color="bg-indigo-500"
       />
+      <StatsCard
+        icon={<FaCalendarAlt size={24} />}
+        title="Paid"
+        value={`${monthlyCost} PKR`}
+        color="bg-indigo-500"
+       
+      />
     </div>
   );
 };

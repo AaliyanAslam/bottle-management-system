@@ -1,85 +1,59 @@
 // pages/Home.jsx
 import React, { useEffect, useState } from 'react';
 import { collection, onSnapshot, query, orderBy, where } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { db, auth } from '../lib/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { useNavigate } from 'react-router-dom';
+import Navbar from "../components/navbar";
 import Dashboard from '../components/dashboard';
 import DeliveryForm from '../components/deliveryForm';
 import DeliveryHistory from '../components/deliveryHistory';
-import { onAuthStateChanged } from 'firebase/auth';
-import {auth} from "../lib/firebase";
-import { useNavigate } from 'react-router-dom';
-import Navbar from "../components/navbar"
 
 const Home = () => {
   const [deliveries, setDeliveries] = useState([]);
-  const navigate = useNavigate()
-  const [user , setUser]= useState()
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
   useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
-    if (currentUser) {
+    // Auth listener + fetch data in one place
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+
+        // Fetch only this user's deliveries
       const q = query(
-        collection(db, 'deliveries'),
-        where('userId', '==', currentUser.uid) // ✅ only that user's data
-      );
-
-      onSnapshot(q, (snapshot) => {
-        const items = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setDeliveries(items);
-      });
-    } else {
-      navigate('/'); // If not logged in
-    }
-  });
-
-  return () => unsubscribe();
-}, []);
+  collection(db, 'deliveries'),
+  where('userId', '==', currentUser.uid)
+);
 
 
-  useEffect(() => {
-    const q = query(collection(db, 'deliveries'), orderBy('createdAt', 'asc'));
+        const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+          const items = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+          }));
+          setDeliveries(items);
+        });
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const items = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setDeliveries(items);
+        return () => unsubscribeSnapshot();
+      } else {
+        setUser(null);
+        navigate('/'); // Redirect if not logged in
+      }
     });
 
-    return () => unsubscribe(); // Clean up
-  }, []);
-
-  useEffect(()=> {
-const unsubscribe = onAuthStateChanged(auth , (currentUser) => {
-    setUser(currentUser)
-   console.log("user in login");
-   
-if(currentUser){
-    navigate("/app") 
-} else {
-    navigate("/") 
-
-}
-})
-  } , [])
+    return () => unsubscribe();
+  }, [navigate]);
 
   return (
-    <>
-    
     <div className='[background:radial-gradient(125%_125%_at_50%_10%,#000_40%,#63e_100%)] text-white p-6'>
- <div className="max-w-4xl mx-auto px-4 py-8">
-    <Navbar/>
-      <Dashboard deliveries={deliveries} />
-      <DeliveryForm />
-      <DeliveryHistory deliveries={deliveries} />
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <Navbar />
+        <Dashboard deliveries={deliveries} />
+        <DeliveryForm />
+        <DeliveryHistory deliveries={deliveries} />
+      </div>
     </div>
-    </div>
-   
-    
-    </>
   );
 };
 

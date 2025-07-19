@@ -5,6 +5,7 @@ import Signup from './signup';
 import Login from "./login";
 import { onAuthStateChanged } from 'firebase/auth';
 import { auth } from '../lib/firebase';
+import PaymentsPage from "./PaymentsPage"
 
 const Layout = () => {
   const [user, setUser] = useState(null);
@@ -41,6 +42,10 @@ const Layout = () => {
         path="/app"
         element={user ? <App /> : <Navigate to="/login" />}
       />
+      <Route
+  path="/payments"
+  element={user ? <PaymentsPage /> : <Navigate to="/login" />}
+/>
     </Routes>
   );
 };
